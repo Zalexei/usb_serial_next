@@ -20,14 +20,14 @@ import 'usb_device.dart';
 /// await port.writeText('hello\n');
 /// ```
 class UsbSerial {
-  UsbSerial._(this._host) {
-    UsbSerialFlutterApi.setUp(platformCallbacks);
-  }
+  UsbSerial._(this._host) : _listensToPlatform = true;
 
   /// Uses [host] instead of the platform, and does not listen to the
   /// platform: tests deliver its calls through [platformCallbacks].
   @visibleForTesting
-  UsbSerial.withHostApi(UsbSerialHostApi host) : _host = host;
+  UsbSerial.withHostApi(UsbSerialHostApi host)
+      : _host = host,
+        _listensToPlatform = false;
 
   static UsbSerial? _instance;
 
@@ -41,8 +41,21 @@ class UsbSerial {
 
   final UsbSerialHostApi _host;
   final Map<int, UsbSerialPort> _ports = {};
-  final _events = StreamController<UsbDeviceEvent>.broadcast();
+  late final _events =
+      StreamController<UsbDeviceEvent>.broadcast(onListen: _listenToPlatform);
   Future<void>? _ready;
+
+  // The platform's calls are handled from the first use on, not from
+  // construction: `UsbSerial.instance` may be read in main() before runApp,
+  // when there is no binary messenger yet.
+  final bool _listensToPlatform;
+  bool _listening = false;
+
+  void _listenToPlatform() {
+    if (!_listensToPlatform || _listening) return;
+    UsbSerialFlutterApi.setUp(platformCallbacks);
+    _listening = true;
+  }
 
   /// The receiving end of the platform's calls, for tests.
   @visibleForTesting
@@ -130,6 +143,7 @@ class UsbSerial {
       throw const SerialException(SerialError.unsupportedOperation,
           'usb_serial_next works on Android only');
     }
+    _listenToPlatform();
     try {
       final ready = _ready ??= _host.reset();
       try {
