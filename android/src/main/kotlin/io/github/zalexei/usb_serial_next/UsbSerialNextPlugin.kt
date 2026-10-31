@@ -121,12 +121,12 @@ class UsbSerialNextPlugin : FlutterPlugin, ActivityAware, UsbSerialHostApi {
         return manager.hasPermission(device)
     }
 
-    override fun requestPermission(deviceName: String, callback: (Result<Boolean>) -> Unit) {
+    override fun requestPermission(deviceName: String, callback: (Result<Boolean>) -> Unit) = guarded(callback) {
         val device = requireUsbManager().deviceList[deviceName]
         val permissions = permissions
         if (device == null || permissions == null) {
             callback(Result.failure(deviceNotFound(deviceName)))
-            return
+            return@guarded
         }
         permissions.request(device) { callback(Result.success(it)) }
     }
@@ -137,7 +137,7 @@ class UsbSerialNextPlugin : FlutterPlugin, ActivityAware, UsbSerialHostApi {
         return requireUsbManager().deviceList[device.deviceName]?.let(::describe)
     }
 
-    override fun open(request: NativeOpenRequest, callback: (Result<Long>) -> Unit) {
+    override fun open(request: NativeOpenRequest, callback: (Result<Long>) -> Unit) = guarded(callback) {
         val manager = requireUsbManager()
         val key = "${request.deviceName}#${request.portIndex}"
         if (key in opening || sessions.values.any { "${it.deviceName}#${it.portIndex}" == key }) {
@@ -146,7 +146,7 @@ class UsbSerialNextPlugin : FlutterPlugin, ActivityAware, UsbSerialHostApi {
                     FlutterError(SerialErrors.BUSY, "Port ${request.portIndex} of ${request.deviceName} is already open"),
                 ),
             )
-            return
+            return@guarded
         }
         opening += key
         background.execute {
@@ -159,10 +159,11 @@ class UsbSerialNextPlugin : FlutterPlugin, ActivityAware, UsbSerialHostApi {
         }
     }
 
-    override fun write(portId: Long, data: ByteArray, timeoutMs: Long, callback: (Result<Unit>) -> Unit) {
-        val session = sessions[portId] ?: return callback(Result.failure(SerialErrors.portClosed(portId)))
-        session.write(data, timeoutMs.coerceIn(0, Int.MAX_VALUE.toLong()).toInt(), callback)
-    }
+    override fun write(portId: Long, data: ByteArray, timeoutMs: Long, callback: (Result<Unit>) -> Unit) =
+        guarded(callback) {
+            val session = sessions[portId] ?: return@guarded callback(Result.failure(SerialErrors.portClosed(portId)))
+            session.write(data, timeoutMs.coerceIn(0, Int.MAX_VALUE.toLong()).toInt(), callback)
+        }
 
     override fun setConfig(portId: Long, config: NativePortConfig, callback: (Result<Unit>) -> Unit) =
         control(portId, callback) { it.configure(config.toLineSettings()) }
@@ -182,8 +183,8 @@ class UsbSerialNextPlugin : FlutterPlugin, ActivityAware, UsbSerialHostApi {
     override fun purge(portId: Long, output: Boolean, input: Boolean, callback: (Result<Unit>) -> Unit) =
         control(portId, callback) { it.purge(output, input) }
 
-    override fun close(portId: Long, callback: (Result<Unit>) -> Unit) {
-        val session = sessions[portId] ?: return callback(Result.success(Unit))
+    override fun close(portId: Long, callback: (Result<Unit>) -> Unit) = guarded(callback) {
+        val session = sessions[portId] ?: return@guarded callback(Result.success(Unit))
         closeSession(session, null) { callback(Result.success(Unit)) }
     }
 
@@ -264,9 +265,22 @@ class UsbSerialNextPlugin : FlutterPlugin, ActivityAware, UsbSerialHostApi {
         callback(Result.success(session.id))
     }
 
-    private fun <T> control(portId: Long, callback: (Result<T>) -> Unit, op: (SerialIo) -> T) {
-        val session = sessions[portId] ?: return callback(Result.failure(SerialErrors.portClosed(portId)))
+    private fun <T> control(portId: Long, callback: (Result<T>) -> Unit, op: (SerialIo) -> T) = guarded(callback) {
+        val session = sessions[portId] ?: return@guarded callback(Result.failure(SerialErrors.portClosed(portId)))
         session.control(op, callback)
+    }
+
+    /**
+     * Pigeon does not catch what an async handler throws before it calls
+     * back, and Dart would wait forever; answer with the error instead. Some
+     * vendor ROMs throw from UsbManager.requestPermission, for example.
+     */
+    private inline fun <T> guarded(callback: (Result<T>) -> Unit, body: () -> Unit) {
+        try {
+            body()
+        } catch (e: Throwable) {
+            callback(Result.failure(SerialErrors.from(e)))
+        }
     }
 
     /** Forgets the session now and closes it in the background. */
