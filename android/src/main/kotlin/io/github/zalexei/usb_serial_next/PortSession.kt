@@ -99,7 +99,7 @@ internal class PortSession(
     }
 
     private fun readLoop() {
-        val buffer = ByteArray(maxOf(io.readBufferSize, MIN_READ_BUFFER))
+        val buffer = ByteArray(io.readBufferSize)
         try {
             while (!closed.get()) {
                 val count = io.read(buffer)
@@ -140,7 +140,6 @@ internal class PortSession(
     } ?: this
 
     companion object {
-        const val MIN_READ_BUFFER = 64
         const val DETACH_SETTLE_MS = 200L
     }
 }

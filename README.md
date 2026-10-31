@@ -27,6 +27,30 @@ extra repository.
 - Works with Flutter 3.27 and newer, pure Kotlin and Java (fine with 16 KB
   memory pages).
 
+<img src="https://raw.githubusercontent.com/Zalexei/usb_serial_next/main/doc/terminal.png" width="270" alt="The example terminal talking to an ESP32-S3">
+
+## Speed
+
+Measured on a Xiaomi 14T Pro (Android 16) with an ESP32-S3 on its native USB
+port (USB 2.0 full speed, CDC-ACM), with the example's speed test and
+`tool/esp32_echo`, 1 MB each way:
+
+| | usb_serial_next | Same board on a Mac |
+|---|---|---|
+| Reading (device to phone) | 813–831 KB/s, every byte checked, none lost | 819 KB/s |
+| Writing (phone to device) | 547–548 KB/s | 560 KB/s |
+
+Both are the board's limits rather than the plugin's. Two things get there:
+the plugin keeps 16 USB read requests queued (with one, reading ran at
+366 KB/s) and writes in bulk transfers of up to 16 KB instead of one per
+64-byte packet (writing ran at 385 KB/s). A UART bridge (CH340, CP2102, FTDI)
+is limited by its baud rate instead: 921600 baud carries about 90 KB/s.
+
+Note that the Arduino core on the ESP32-S3 drops received data when the
+sketch reads slower than USB delivers it: at full speed the board kept about
+55% of what was written, on the Mac as on the phone. Pace your writes or
+have the device acknowledge them.
+
 ## Platforms
 
 Android only, `minSdk` 21, `compileSdk` 35. The phone must support USB host
@@ -134,7 +158,8 @@ usb.deviceEvents.listen((event) {
 `write` completes when the driver has handed all bytes to the device. Its
 default timeout is twice the time the bytes need at the port's baud rate,
 plus one second; pass `timeout:` to change it (`Duration.zero` waits
-forever). On a timeout, `SerialException.bytesWritten` says how much went out.
+forever). On a timeout, `SerialException.bytesWritten` says how much surely
+went out (counted in steps of 16 KB).
 
 ## Errors
 
@@ -237,16 +262,28 @@ only reason for it.
 control lines. Code that only exchanges bytes can take a `SerialPort`, so a
 Bluetooth SPP transport can be added later without changing it.
 
-On the native side each open port has a reading thread and a writing thread.
-Reads that arrive while the previous chunk is still on its way to Dart are
-joined, so a fast device does not flood the main thread.
+On the native side each open port has a reading thread with 16 queued USB
+requests and a writing thread. Reads that arrive while the previous chunk is
+still on its way to Dart are joined, so a fast device does not flood the main
+thread.
+
+## Tested on
+
+- Xiaomi 14T Pro, Android 16, release build: ESP32-S3 (LilyGO T-Display-S3)
+  native USB, CDC-ACM composite device. Listing, plug and unplug events,
+  permission, open, reading and writing, `burst` of 1 MB without loss, DTR
+  and RTS (they reset the ESP32-S3 the way esptool does), control lines,
+  unplugging while open.
+- Android emulator (API 37): building, the example, the "no devices" case.
+- The other drivers (FTDI, CP210x, CH34x, PL2303) come unchanged from
+  usb-serial-for-android 3.11.0 and were not run on hardware here.
 
 ## Example
 
 [`example/`](https://github.com/Zalexei/usb_serial_next/tree/main/example) is a
 terminal: the device list (updated on plug and unplug), line settings, sending
 and receiving as text or hex with a choice of line ending, DTR and RTS
-toggles, and a device filter for starting on plug-in.
+toggles, a speed test, and a device filter for starting on plug-in.
 [`tool/esp32_echo`](https://github.com/Zalexei/usb_serial_next/tree/main/tool/esp32_echo)
 is an ESP32 firmware that answers it.
 

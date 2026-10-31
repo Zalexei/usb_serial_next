@@ -75,7 +75,8 @@ class SerialException implements Exception {
   /// Details for logs, in English.
   final String? message;
 
-  /// For [SerialError.timeout]: how many bytes went out before the timeout.
+  /// For [SerialError.timeout]: how many bytes surely went out before the
+  /// timeout. Counted in steps of 16 KB, so more may have.
   final int? bytesWritten;
 
   @override

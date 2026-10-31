@@ -4,6 +4,9 @@ version: 0.1.0
 repository: https://github.com/Zalexei/usb_serial_next
 issue_tracker: https://github.com/Zalexei/usb_serial_next/issues
 topics: [usb, serial, uart, arduino, esp32]
+screenshots:
+  - description: The example terminal talking to an ESP32-S3 over USB OTG.
+    path: doc/terminal.png
 
 environment:
   sdk: ^3.6.0

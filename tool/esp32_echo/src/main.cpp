@@ -22,7 +22,7 @@ static void burst(long count) {
 }
 
 static void sink(long count) {
-  static uint8_t buffer[1024];
+  static uint8_t buffer[4096];
   long got = 0;
   const uint32_t start = millis();
   uint32_t last = start;
@@ -54,7 +54,7 @@ static void handle(const String& command) {
 }
 
 void setup() {
-  Serial.setRxBufferSize(4096);
+  Serial.setRxBufferSize(65536);
   Serial.setTxBufferSize(4096);
 #if ARDUINO_USB_MODE && ARDUINO_USB_CDC_ON_BOOT
   // Native USB: wait for a slow host instead of dropping data.

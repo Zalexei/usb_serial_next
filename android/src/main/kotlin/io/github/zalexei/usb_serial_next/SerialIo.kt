@@ -1,6 +1,7 @@
 // Copyright 2026 Alexei Zalogin. Use of this source code is governed by the MIT license in the LICENSE file.
 package io.github.zalexei.usb_serial_next
 
+import io.github.zalexei.usb_serial_next.usbserial.driver.CommonUsbSerialPort
 import io.github.zalexei.usb_serial_next.usbserial.driver.UsbSerialPort
 import io.github.zalexei.usb_serial_next.usbserial.driver.UsbSerialPort.ControlLine
 
@@ -34,11 +35,21 @@ internal interface SerialIo {
 }
 
 internal class UsbSerialIo(private val port: UsbSerialPort) : SerialIo {
-    override val readBufferSize: Int
-        get() = port.readEndpoint.maxPacketSize
+    init {
+        // Several USB requests wait for data at once, so the next packet has
+        // somewhere to go while the last one is handed over. With a single
+        // request an ESP32-S3 delivered 366 KB/s to a Xiaomi 14T Pro.
+        port.setReadQueue(READ_QUEUE_REQUESTS, 0)
+        // One bulk transfer per 16 KB instead of one per 64-byte packet. All
+        // drivers' ports are CommonUsbSerialPort; the interface lacks it.
+        (port as? CommonUsbSerialPort)?.setWriteBufferSize(WRITE_BUFFER_BYTES)
+    }
 
-    // Timeout 0 reads with a queued UsbRequest, the way usb-serial-for-android
-    // recommends for continuous reading; close() cancels it.
+    // The read queue fixes the buffer size at the endpoint's packet size.
+    override val readBufferSize: Int
+        get() = port.readQueueBufferSize
+
+    // Timeout 0 waits for the queued requests; close() cancels them.
     override fun read(buffer: ByteArray): Int = port.read(buffer, 0)
 
     override fun write(data: ByteArray, timeoutMs: Int) = port.write(data, timeoutMs)
@@ -86,3 +97,8 @@ internal class UsbSerialIo(private val port: UsbSerialPort) : SerialIo {
         if (port.isOpen) port.close()
     }
 }
+
+private const val READ_QUEUE_REQUESTS = 16
+
+// The largest bulk transfer Android takes before 9.0.
+private const val WRITE_BUFFER_BYTES = 16 * 1024
