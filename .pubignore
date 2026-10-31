@@ -36,3 +36,6 @@ migrate_working_dir/
 # Local SDK paths
 local.properties
 
+
+# Not part of the published package
+tool/

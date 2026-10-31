@@ -1,16 +1,22 @@
-# usb_serial_next_example
+# usb_serial_next example
 
-Demonstrates how to use the usb_serial_next plugin.
+A serial terminal for Android:
 
-## Getting Started
+- the USB devices, updated when one is plugged in or out;
+- line settings before connecting (baud rate, data bits, parity, stop bits,
+  flow control, DTR and RTS, the port of a multi-port device, a driver for an
+  unknown device);
+- received and sent data as text (control characters shown as `\r`, `\n`)
+  or hex, sending text with a line ending or raw hex;
+- DTR and RTS toggles and the input control lines;
+- `android/app/src/main/res/xml/device_filter.xml`: the app offers to open
+  when a common adapter or board is plugged in, and then has permission for it.
 
-This project is a starting point for a Flutter application.
+Run it with a phone that supports USB OTG:
 
-A few resources to get you started if this is your first Flutter project:
+```bash
+flutter run
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+`../tool/esp32_echo` is a PlatformIO firmware for ESP32 boards that answers
+`ping`, `info`, `burst N` and echoes everything else.

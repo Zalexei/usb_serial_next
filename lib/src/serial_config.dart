@@ -17,19 +17,20 @@ enum FlowControl {
   /// Hardware, with the DTR and DSR lines.
   dtrDsr,
 
-  /// Software, with XON/XOFF characters handled by the chip.
+  /// Software, with XON/XOFF characters handled by the chip (CP210x).
   xonXoff,
 
-  /// Software, with XON/XOFF characters left in the received data.
+  /// Software, with XON/XOFF characters left in the received data (FTDI,
+  /// PL2303).
   xonXoffInline,
 }
 
 /// Line settings of a serial port. The default is 115200 baud, 8N1, no flow
 /// control.
 ///
-/// Most chips support [FlowControl.none] only; CP210x, FTDI, PL2303 and
-/// CH34x know some of the others. Asking for one the chip lacks fails with
-/// [SerialError.unsupportedOperation].
+/// CDC-ACM and CH34x chips support [FlowControl.none] only; CP210x, FTDI and
+/// PL2303 know some of the others (see the README). Asking for one the chip
+/// lacks fails with [SerialError.unsupportedOperation].
 @immutable
 class SerialConfig {
   const SerialConfig({

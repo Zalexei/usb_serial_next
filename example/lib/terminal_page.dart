@@ -11,7 +11,7 @@ enum _Direction { rx, tx, info }
 
 class _Entry {
   _Entry(this.direction, this.time, [List<int> bytes = const [], this.note])
-      : bytes = [...bytes];
+    : bytes = [...bytes];
 
   final _Direction direction;
   final DateTime time;
@@ -62,16 +62,28 @@ class _TerminalPageState extends State<TerminalPage> {
     super.initState();
     _dtr = _port.config.dtr ?? false;
     _rts = _port.config.rts ?? false;
-    _add(_Entry(_Direction.info, DateTime.now(), const [],
-        'Connected, ${_port.config}'));
+    _add(
+      _Entry(
+        _Direction.info,
+        DateTime.now(),
+        const [],
+        'Connected, ${_port.config}',
+      ),
+    );
     _subscription = _port.input.listen(
       _onData,
       onError: (Object e) => setState(() {
         _closedBy = e is SerialException ? e : null;
-        _add(_Entry(_Direction.info, DateTime.now(), const [],
+        _add(
+          _Entry(
+            _Direction.info,
+            DateTime.now(),
+            const [],
             e is SerialException && e.error == SerialError.disconnected
                 ? 'Device unplugged'
-                : 'Error: $e'));
+                : 'Error: $e',
+          ),
+        );
       }),
       onDone: () => setState(() {}),
     );
@@ -152,8 +164,10 @@ class _TerminalPageState extends State<TerminalPage> {
     try {
       final lines = await _port.getControlLines();
       String show(bool? on) => on == null ? '–' : (on ? 'on' : 'off');
-      _snack('CTS ${show(lines.cts)}  DSR ${show(lines.dsr)}  '
-          'CD ${show(lines.cd)}  RI ${show(lines.ri)}');
+      _snack(
+        'CTS ${show(lines.cts)}  DSR ${show(lines.dsr)}  '
+        'CD ${show(lines.cd)}  RI ${show(lines.ri)}',
+      );
     } on SerialException catch (e) {
       _snack('Control lines: ${e.message}');
     }
@@ -179,8 +193,10 @@ class _TerminalPageState extends State<TerminalPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(_port.device.productName ?? _port.device.vidPid),
-            Text('${_port.config}  ↓$_received ↑$_sent',
-                style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              '${_port.config}  ↓$_received ↑$_sent',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ],
         ),
         actions: [
@@ -202,9 +218,20 @@ class _TerminalPageState extends State<TerminalPage> {
               _ => _showControlLines(),
             },
             itemBuilder: (_) => [
-              CheckedPopupMenuItem(value: 'dtr', checked: _dtr, child: const Text('DTR')),
-              CheckedPopupMenuItem(value: 'rts', checked: _rts, child: const Text('RTS')),
-              const PopupMenuItem(value: 'lines', child: Text('Read CTS/DSR/CD/RI')),
+              CheckedPopupMenuItem(
+                value: 'dtr',
+                checked: _dtr,
+                child: const Text('DTR'),
+              ),
+              CheckedPopupMenuItem(
+                value: 'rts',
+                checked: _rts,
+                child: const Text('RTS'),
+              ),
+              const PopupMenuItem(
+                value: 'lines',
+                child: Text('Read CTS/DSR/CD/RI'),
+              ),
             ],
           ),
         ],
@@ -213,9 +240,11 @@ class _TerminalPageState extends State<TerminalPage> {
         children: [
           if (!open)
             MaterialBanner(
-              content: Text(_closedBy?.error == SerialError.disconnected
-                  ? 'The device was unplugged.'
-                  : 'The port is closed.'),
+              content: Text(
+                _closedBy?.error == SerialError.disconnected
+                    ? 'The device was unplugged.'
+                    : 'The port is closed.',
+              ),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
@@ -254,17 +283,30 @@ class _TerminalPageState extends State<TerminalPage> {
                     ButtonSegment(value: true, label: Text('Hex')),
                   ],
                   selected: {_sendHex},
-                  onSelectionChanged: (v) => setState(() => _sendHex = v.single),
+                  onSelectionChanged: (v) =>
+                      setState(() => _sendHex = v.single),
                 ),
                 const Spacer(),
                 if (!_sendHex)
                   DropdownButton<_LineEnding>(
                     value: _lineEnding,
                     items: const [
-                      DropdownMenuItem(value: _LineEnding.none, child: Text('No ending')),
-                      DropdownMenuItem(value: _LineEnding.lf, child: Text(r'\n')),
-                      DropdownMenuItem(value: _LineEnding.cr, child: Text(r'\r')),
-                      DropdownMenuItem(value: _LineEnding.crlf, child: Text(r'\r\n')),
+                      DropdownMenuItem(
+                        value: _LineEnding.none,
+                        child: Text('No ending'),
+                      ),
+                      DropdownMenuItem(
+                        value: _LineEnding.lf,
+                        child: Text(r'\n'),
+                      ),
+                      DropdownMenuItem(
+                        value: _LineEnding.cr,
+                        child: Text(r'\r'),
+                      ),
+                      DropdownMenuItem(
+                        value: _LineEnding.crlf,
+                        child: Text(r'\r\n'),
+                      ),
                     ],
                     onChanged: (v) => setState(() => _lineEnding = v!),
                   ),
@@ -313,8 +355,8 @@ class _EntryView extends StatelessWidget {
     };
     final t = entry.time;
     final time = '${_two(t.hour)}:${_two(t.minute)}:${_two(t.second)}';
-    final body = entry.note ??
-        (hex ? toHex(entry.bytes) : toVisibleText(entry.bytes));
+    final body =
+        entry.note ?? (hex ? toHex(entry.bytes) : toVisibleText(entry.bytes));
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: SelectableText(

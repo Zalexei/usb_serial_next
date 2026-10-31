@@ -39,8 +39,10 @@ class _ConnectSheetState extends State<ConnectSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(device.productName ?? device.vidPid,
-                style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              device.productName ?? device.vidPid,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: 8),
             _row(
               'Baud rate',
@@ -56,7 +58,9 @@ class _ConnectSheetState extends State<ConnectSheet> {
             ),
             _segments<int>(
               'Data bits',
-              {for (final bits in [5, 6, 7, 8]) bits: '$bits'},
+              {
+                for (final bits in [5, 6, 7, 8]) bits: '$bits',
+              },
               _config.dataBits,
               (bits) => _config.copyWith(dataBits: bits),
             ),
@@ -71,7 +75,7 @@ class _ConnectSheetState extends State<ConnectSheet> {
               const {
                 StopBits.one: '1',
                 StopBits.onePointFive: '1.5',
-                StopBits.two: '2'
+                StopBits.two: '2',
               },
               _config.stopBits,
               (stopBits) => _config.copyWith(stopBits: stopBits),
@@ -85,7 +89,8 @@ class _ConnectSheetState extends State<ConnectSheet> {
                     DropdownMenuItem(value: flow, child: Text(flow.name)),
                 ],
                 onChanged: (flow) => setState(
-                    () => _config = _config.copyWith(flowControl: flow)),
+                  () => _config = _config.copyWith(flowControl: flow),
+                ),
               ),
             ),
             SwitchListTile(
@@ -129,8 +134,9 @@ class _ConnectSheetState extends State<ConnectSheet> {
               icon: const Icon(Icons.cable),
               label: const Text('Connect'),
               onPressed: device.isSerial || _driver != null
-                  ? () => Navigator.of(context)
-                      .pop(ConnectChoice(_config, _portIndex, _driver))
+                  ? () => Navigator.of(
+                      context,
+                    ).pop(ConnectChoice(_config, _portIndex, _driver))
                   : null,
             ),
           ],
@@ -140,9 +146,9 @@ class _ConnectSheetState extends State<ConnectSheet> {
   }
 
   Widget _row(String label, Widget control) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [Text(label), control],
-      );
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [Text(label), control],
+  );
 
   Widget _segments<T extends Object>(
     String label,

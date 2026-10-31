@@ -16,7 +16,9 @@ class TerminalApp extends StatelessWidget {
       title: 'USB serial terminal',
       theme: ThemeData(colorSchemeSeed: Colors.teal),
       darkTheme: ThemeData(
-          colorSchemeSeed: Colors.teal, brightness: Brightness.dark),
+        colorSchemeSeed: Colors.teal,
+        brightness: Brightness.dark,
+      ),
       home: DevicesPage(usb: usb),
     );
   }

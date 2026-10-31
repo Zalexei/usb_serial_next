@@ -70,18 +70,27 @@ class _DevicesPageState extends State<DevicesPage> {
     await _connect(device, choice.config, choice.portIndex, choice.driver);
   }
 
-  Future<void> _connect(UsbDevice device, SerialConfig config, int portIndex,
-      UsbSerialDriver? driver) async {
+  Future<void> _connect(
+    UsbDevice device,
+    SerialConfig config,
+    int portIndex,
+    UsbSerialDriver? driver,
+  ) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
-      final port = await widget.usb.open(device,
-          config: config, portIndex: portIndex, driver: driver);
+      final port = await widget.usb.open(
+        device,
+        config: config,
+        portIndex: portIndex,
+        driver: driver,
+      );
       if (!mounted) {
         await port.close();
         return;
       }
-      await Navigator.of(context).push(
-          MaterialPageRoute<void>(builder: (_) => TerminalPage(port: port)));
+      await Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => TerminalPage(port: port)));
       await port.close();
     } on SerialException catch (e) {
       messenger.showSnackBar(SnackBar(content: Text(_describe(e))));
@@ -91,14 +100,14 @@ class _DevicesPageState extends State<DevicesPage> {
   }
 
   String _describe(SerialException e) => switch (e.error) {
-        SerialError.permissionDenied => 'No permission for the device',
-        SerialError.busy => 'The port is already in use',
-        SerialError.unsupportedDevice =>
-          'No driver for this device. Pick one in "Driver" if you know the chip.',
-        SerialError.unsupportedOperation =>
-          'The chip does not support these settings',
-        _ => '${e.error.name}: ${e.message}',
-      };
+    SerialError.permissionDenied => 'No permission for the device',
+    SerialError.busy => 'The port is already in use',
+    SerialError.unsupportedDevice =>
+      'No driver for this device. Pick one in "Driver" if you know the chip.',
+    SerialError.unsupportedOperation =>
+      'The chip does not support these settings',
+    _ => '${e.error.name}: ${e.message}',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -128,9 +137,10 @@ class _DevicesPageState extends State<DevicesPage> {
     final error = _error;
     if (error != null) {
       return _Message(
-          icon: Icons.error_outline,
-          title: 'Could not list devices',
-          text: '$error');
+        icon: Icons.error_outline,
+        title: 'Could not list devices',
+        text: '$error',
+      );
     }
     final devices = _devices;
     if (devices == null) {
@@ -140,15 +150,14 @@ class _DevicesPageState extends State<DevicesPage> {
       return const _Message(
         icon: Icons.usb_off,
         title: 'No USB devices',
-        text: 'Connect an Arduino, ESP32 or USB-UART adapter with an OTG '
+        text:
+            'Connect an Arduino, ESP32 or USB-UART adapter with an OTG '
             'cable. The list updates by itself.',
       );
     }
     return RefreshIndicator(
       onRefresh: _refresh,
-      child: ListView(
-        children: [for (final device in devices) _tile(device)],
-      ),
+      child: ListView(children: [for (final device in devices) _tile(device)]),
     );
   }
 
@@ -166,7 +175,9 @@ class _DevicesPageState extends State<DevicesPage> {
       trailing: device.hasPermission
           ? null
           : const Tooltip(
-              message: 'Will ask for permission', child: Icon(Icons.lock)),
+              message: 'Will ask for permission',
+              child: Icon(Icons.lock),
+            ),
       onTap: () => _onTap(device),
     );
   }
