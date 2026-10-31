@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <!-- Optional, so that apps using the plugin still install on devices
+       without USB host support. -->
+  <uses-feature android:name="android.hardware.usb.host" android:required="false" />
+</manifest>
