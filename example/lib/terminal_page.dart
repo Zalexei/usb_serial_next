@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:usb_serial_next/usb_serial_next.dart';
 
 import 'bytes_format.dart';
+import 'speed_test.dart';
 
 enum _Direction { rx, tx, info }
 
@@ -54,6 +55,7 @@ class _TerminalPageState extends State<TerminalPage> {
   var _received = 0;
   var _sent = 0;
   SerialException? _closedBy;
+  SpeedTest? _speedTest;
 
   UsbSerialPort get _port => widget.port;
 
@@ -98,6 +100,13 @@ class _TerminalPageState extends State<TerminalPage> {
   }
 
   void _onData(Uint8List data) {
+    final test = _speedTest;
+    if (test != null) {
+      // No rebuild per chunk while measuring.
+      _received += data.length;
+      test.add(data);
+      return;
+    }
     setState(() {
       _received += data.length;
       final last = _entries.isEmpty ? null : _entries.last;
@@ -160,6 +169,27 @@ class _TerminalPageState extends State<TerminalPage> {
     }
   }
 
+  Future<void> _runSpeedTest() async {
+    final test = _speedTest = SpeedTest(_port);
+    void note(String text) => setState(
+      () => _add(_Entry(_Direction.info, DateTime.now(), const [], text)),
+    );
+    note('Speed test with tool/esp32_echo, 1 MB each way');
+    try {
+      for (final run in [() => test.read(1 << 20), () => test.write(1 << 20)]) {
+        final result = await run();
+        debugPrint('usb_serial_next speed: $result');
+        note(result);
+      }
+    } catch (e) {
+      note('Speed test failed: $e');
+    } finally {
+      _speedTest = null;
+      setState(() {});
+      _scrollToEnd();
+    }
+  }
+
   Future<void> _showControlLines() async {
     try {
       final lines = await _port.getControlLines();
@@ -215,6 +245,7 @@ class _TerminalPageState extends State<TerminalPage> {
             onSelected: (item) => switch (item) {
               'dtr' => _toggleLine(true, !_dtr),
               'rts' => _toggleLine(false, !_rts),
+              'speed' => _runSpeedTest(),
               _ => _showControlLines(),
             },
             itemBuilder: (_) => [
@@ -231,6 +262,11 @@ class _TerminalPageState extends State<TerminalPage> {
               const PopupMenuItem(
                 value: 'lines',
                 child: Text('Read CTS/DSR/CD/RI'),
+              ),
+              PopupMenuItem(
+                value: 'speed',
+                enabled: _speedTest == null,
+                child: const Text('Speed test (esp32_echo)'),
               ),
             ],
           ),
