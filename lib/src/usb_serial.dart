@@ -3,11 +3,10 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:serial_port_core/serial_port_core.dart';
 
 import 'messages.g.dart';
 import 'serial_config.dart';
-import 'serial_exception.dart';
-import 'serial_port.dart';
 import 'usb_device.dart';
 
 /// USB serial devices on Android: find them, ask for access, open ports.
@@ -154,7 +153,7 @@ class UsbSerial {
       }
       return await call();
     } on PlatformException catch (e) {
-      throw SerialException.fromPlatform(e);
+      throw SerialException.fromCode(e.code, e.message, e.details);
     }
   }
 

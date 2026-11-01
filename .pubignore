@@ -39,3 +39,4 @@ local.properties
 
 # Not part of the published package
 tool/
+pubspec_overrides.yaml

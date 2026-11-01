@@ -1,3 +1,13 @@
+## 0.2.0
+
+* `SerialPort`, `SerialException` and `SerialError` moved to the new
+  package serial_port_core, which this package exports, so that
+  bluetooth_serial_next shares them; imports stay the same.
+* Breaking: `SerialError` has three new values for Bluetooth (`adapterOff`,
+  `notPaired`, `connectionFailed`; a USB port never reports them), so a
+  `switch` over it needs a default. `SerialException.fromPlatform` is gone;
+  use `SerialException.fromCode`.
+
 ## 0.1.0
 
 * First release: USB serial on Android with usb-serial-for-android 3.11.0

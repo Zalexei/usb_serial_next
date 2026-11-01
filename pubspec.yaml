@@ -1,6 +1,6 @@
 name: usb_serial_next
 description: "Maintained replacement for usb_serial: Arduino, ESP32 and USB-UART adapters (FTDI, CP210x, CH34x, PL2303, CDC-ACM) on Android over USB OTG, no JitPack."
-version: 0.1.0
+version: 0.2.0
 repository: https://github.com/Zalexei/usb_serial_next
 issue_tracker: https://github.com/Zalexei/usb_serial_next/issues
 topics: [usb, serial, uart, arduino, esp32]
@@ -16,6 +16,7 @@ dependencies:
   flutter:
     sdk: flutter
   meta: ^1.15.0
+  serial_port_core: ^0.1.0
 
 dev_dependencies:
   flutter_test:

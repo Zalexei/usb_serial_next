@@ -258,9 +258,13 @@ only reason for it.
 ## Architecture
 
 `SerialPort` is the transport-neutral part: `input`, `write`, `close`,
-`closed`. `UsbSerialPort` implements it for USB and adds line settings and
-control lines. Code that only exchanges bytes can take a `SerialPort`, so a
-Bluetooth SPP transport can be added later without changing it.
+`closed`, `lines()`, `writeText()`. It lives in
+[`serial_port_core`](https://pub.dev/packages/serial_port_core), which this
+package exports. `UsbSerialPort` implements it for USB and adds line settings
+and control lines;
+[`bluetooth_serial_next`](https://pub.dev/packages/bluetooth_serial_next)
+implements it for Bluetooth Classic SPP. Code that only exchanges bytes can
+take a `SerialPort` and work over either.
 
 On the native side each open port has a reading thread with 16 queued USB
 requests and a writing thread. Reads that arrive while the previous chunk is

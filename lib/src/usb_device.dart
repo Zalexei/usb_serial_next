@@ -1,8 +1,6 @@
 // Copyright 2026 Alexei Zalogin. Use of this source code is governed by the MIT license in the LICENSE file.
 import 'package:meta/meta.dart';
-
-import 'serial_exception.dart';
-import 'serial_port.dart';
+import 'package:serial_port_core/serial_port_core.dart';
 
 /// Driver families, from usb-serial-for-android.
 enum UsbSerialDriver {
