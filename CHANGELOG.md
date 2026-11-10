@@ -1,3 +1,10 @@
+## 0.2.1
+
+* API docs for the rest of the public API: `Parity`, `StopBits`,
+  `FlowControl.none`, the `SerialConfig`, `UsbDevice` and `UsbDeviceEvent`
+  fields, `UsbSerialPort.device` and `portIndex`. `SerialConfig.copyWith`
+  now says that it cannot set `dtr` or `rts` back to null.
+
 ## 0.2.0
 
 * `SerialPort`, `SerialException` and `SerialError` moved to the new

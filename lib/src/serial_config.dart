@@ -2,12 +2,39 @@
 import 'package:meta/meta.dart';
 import 'package:serial_port_core/serial_port_core.dart';
 
-enum Parity { none, odd, even, mark, space }
+/// The parity bit sent after the data bits of each byte.
+enum Parity {
+  /// No parity bit.
+  none,
 
-enum StopBits { one, onePointFive, two }
+  /// The parity bit makes the number of ones odd.
+  odd,
+
+  /// The parity bit makes the number of ones even.
+  even,
+
+  /// The parity bit is always 1.
+  mark,
+
+  /// The parity bit is always 0.
+  space,
+}
+
+/// How long the stop signal after each byte lasts, in bit times.
+enum StopBits {
+  /// One stop bit, the usual setting.
+  one,
+
+  /// One and a half stop bits; not every chip supports it.
+  onePointFive,
+
+  /// Two stop bits.
+  two,
+}
 
 /// How the two sides pause each other when a buffer is full.
 enum FlowControl {
+  /// No flow control: data is sent whenever there is some.
   none,
 
   /// Hardware, with the RTS and CTS lines.
@@ -32,6 +59,8 @@ enum FlowControl {
 /// lacks fails with [SerialError.unsupportedOperation].
 @immutable
 class SerialConfig {
+  /// Creates line settings; values are checked by [validate] when the port
+  /// opens or is reconfigured.
   const SerialConfig({
     this.baudRate = 115200,
     this.dataBits = 8,
@@ -42,12 +71,19 @@ class SerialConfig {
     this.rts,
   });
 
+  /// Speed in bits per second, such as 9600 or 115200.
   final int baudRate;
 
   /// 5 to 8.
   final int dataBits;
+
+  /// Stop bits after each byte.
   final StopBits stopBits;
+
+  /// Parity bit after the data bits.
   final Parity parity;
+
+  /// How the sides pause each other; see [FlowControl].
   final FlowControl flowControl;
 
   /// DTR to set when the port opens; null leaves it as the adapter has it.
@@ -84,6 +120,10 @@ class SerialConfig {
     }
   }
 
+  /// A copy with the given values replaced.
+  ///
+  /// A null argument keeps the current value, so [dtr] and [rts] cannot be
+  /// set back to null this way; create a new [SerialConfig] for that.
   SerialConfig copyWith({
     int? baudRate,
     int? dataBits,

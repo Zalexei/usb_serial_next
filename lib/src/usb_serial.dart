@@ -190,7 +190,11 @@ class UsbSerialPort implements SerialPort {
   final UsbSerial _owner;
   final int _id;
 
+  /// The device this port belongs to.
   final UsbDevice device;
+
+  /// Which port of [device] this is, from 0; above 0 only on multi-port
+  /// chips such as FT2232H and CP2105.
   final int portIndex;
 
   SerialConfig _config;

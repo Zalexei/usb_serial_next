@@ -30,6 +30,8 @@ enum UsbSerialDriver {
 /// A device on the USB bus, serial or not.
 @immutable
 class UsbDevice {
+  /// Creates a device description. The plugin makes these; apps mostly need
+  /// the constructor for tests.
   const UsbDevice({
     required this.deviceName,
     required this.deviceId,
@@ -46,10 +48,21 @@ class UsbDevice {
   /// Identifies the device while it stays plugged in, like
   /// "/dev/bus/usb/001/002". It changes when the device is plugged in again.
   final String deviceName;
+
+  /// Number the system gave the device for this connection; it changes on
+  /// replug, like [deviceName].
   final int deviceId;
+
+  /// USB vendor ID (VID), like 0x1a86 for WCH.
   final int vendorId;
+
+  /// USB product ID (PID), like 0x7523 for CH340.
   final int productId;
+
+  /// Manufacturer string the device reports; null if it has none.
   final String? manufacturerName;
+
+  /// Product string the device reports; null if it has none.
   final String? productName;
 
   /// Null until the app has permission for the device (Android 10+), and for
@@ -90,12 +103,16 @@ class UsbDevice {
 
 /// A device was plugged in or out.
 sealed class UsbDeviceEvent {
+  /// Creates an event about [device].
   const UsbDeviceEvent(this.device);
 
+  /// The device that was plugged in or out.
   final UsbDevice device;
 }
 
+/// A device was plugged in. `UsbSerial.open` asks for permission if needed.
 final class UsbDeviceAttached extends UsbDeviceEvent {
+  /// Creates the event for [device].
   const UsbDeviceAttached(super.device);
 
   @override
@@ -105,6 +122,7 @@ final class UsbDeviceAttached extends UsbDeviceEvent {
 /// Ports of the device were closed already; their [SerialPort.input]
 /// streams end with [SerialError.disconnected].
 final class UsbDeviceDetached extends UsbDeviceEvent {
+  /// Creates the event for [device].
   const UsbDeviceDetached(super.device);
 
   @override
