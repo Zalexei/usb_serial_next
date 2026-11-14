@@ -44,6 +44,7 @@ android {
 
     compileSdk = 35
 
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -92,4 +93,11 @@ if (builtInKotlin) {
             jvmTarget = JavaVersion.VERSION_11
         }
     }
+}
+
+// Lint of AGP 9.3 (Flutter 3.50) crashes on the Javadoc of the vendored Java
+// drivers, and the crash fails release builds of apps that use the plugin.
+// Skip the lint step of release builds; ./gradlew lint still works.
+tasks.matching { it.name.startsWith("lintVital") }.configureEach {
+    enabled = false
 }

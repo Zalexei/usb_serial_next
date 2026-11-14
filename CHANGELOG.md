@@ -1,5 +1,8 @@
 ## 0.2.1
 
+* Fix: release builds of apps on Flutter 3.50 (AGP 9.3) failed in the
+  plugin's `lintVitalAnalyzeRelease` task, where Android lint crashes on the
+  Javadoc of the vendored drivers. The plugin now skips that lint step.
 * API docs for the rest of the public API: `Parity`, `StopBits`,
   `FlowControl.none`, the `SerialConfig`, `UsbDevice` and `UsbDeviceEvent`
   fields, `UsbSerialPort.device` and `portIndex`. `SerialConfig.copyWith`

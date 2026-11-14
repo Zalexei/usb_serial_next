@@ -1,5 +1,8 @@
 // The fake stands in for the native side, which lives in the plugin's src.
 // ignore_for_file: implementation_imports
+// Flutter 3.50 moved Material to package:material_ui; this example still
+// supports older Flutter, so it keeps the old import.
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
